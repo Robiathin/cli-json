@@ -25,17 +25,21 @@ def usage():
 
     -i arg          Specify the number of spaces to indent with.
     -f arg          Specify a file containing JSON to format.
+    -c              Colour output
     -h, --help      Print this message.
     -v, --version   Print version information"""
     print(usage)
 
-opts, args = getopt.getopt(sys.argv[1:], "hi:f:v", ["help", "version"])
+opts, args = getopt.getopt(sys.argv[1:], "hci:f:v", ["help", "version"])
 
 has_file = False
 indent_size = 4
+color_output = False
 
 for o, a in opts:
-    if o == "-f":
+    if o == "-c":
+        color_output = True
+    elif o == "-f":
         file_arg = a
         has_file = True
     elif o == "-i":
@@ -78,6 +82,19 @@ def print_indent(indent_level):
         for j in range(indent_size):
             sys.stdout.write(" ")
 
+def color_key(arg):
+    return "\033[1;31m%s\033[0m" % arg
+
+def color_value(arg):
+    if arg == "true" or arg == "false":
+        return "\033[1;32m%s\033[0m" % arg
+    else:
+        try:
+            float(arg)
+            return "\033[1;35m%s\033[0m" % arg
+        except ValueError:
+            return "\033[1;34m%s\033[0m" % arg
+
 # Recursively parse and print a formatted version of the JSON
 def node_iterate(arg, start_indented, indent_level):
     if type(arg) is list:
@@ -87,11 +104,11 @@ def node_iterate(arg, start_indented, indent_level):
         sys.stdout.write("[\n")
 
         for i, value in enumerate(arg):
-            if type(value) is list or type (value) is dict:
+            if type(value) is list or type(value) is dict:
                 node_iterate(value, True, indent_level + 1)
             else:
                 print_indent(indent_level)
-                sys.stdout.write(prep_arg(value))
+                sys.stdout.write(color_value(prep_arg(value)) if color_output else prep_arg(value))
 
             if (i + 1) != len(arg):
                 sys.stdout.write(",")
@@ -108,12 +125,12 @@ def node_iterate(arg, start_indented, indent_level):
 
         for i, key in enumerate(arg):
             print_indent(indent_level)
-            sys.stdout.write(prep_arg(key) + ": ")
+            sys.stdout.write((color_key(prep_arg(key)) if color_output else prep_arg(key)) + ": ")
 
             if type(arg[key]) is list or type(arg[key]) is dict:
                 node_iterate(arg[key], False, indent_level + 1)
             else:
-                sys.stdout.write(prep_arg(arg[key]))
+                sys.stdout.write(color_value(prep_arg(arg[key])) if color_output else prep_arg(arg[key]))
 
             if (i + 1) != len(arg):
                 sys.stdout.write(",")

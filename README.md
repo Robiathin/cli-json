@@ -38,6 +38,8 @@ $ curl http://api.example.net/ | ./cli-json.py -i 3
 ...
 ```
 
+The output can also be colored by adding the `-c` flag.
+
 ## Requirements
 
  - Python 2.X or 3.X
