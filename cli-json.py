@@ -19,6 +19,10 @@ import getopt
 
 VERSION = "v0.1.0"
 
+def die(msg):
+    sys.stderr.write(msg + "\n")
+    exit(1)
+
 def usage():
     usage = """Usage:
     If -f is not specified cli-json.py will read from STDIN
@@ -46,7 +50,10 @@ for o, a in opts:
         try:
             indent_size = int(a)
         except ValueError:
-            assert False, "Invalid argument for -i!"
+            die("Invalid argument for -i!")
+
+        if indent_size < 0:
+            die("Invalid argument for -i!")
     elif o in ("-h", "--help"):
         usage()
         exit()
@@ -56,7 +63,7 @@ for o, a in opts:
         print("This software is available under the ISC license.")
         exit()
     else:
-        assert False, "Unrecognized argument found!"
+        die("Unrecognized argument found!")
 
 # If no file is provided use STDIN for JSON source
 if has_file:
@@ -65,7 +72,10 @@ if has_file:
 else:
     data = sys.stdin.read()
 
-parsed_data = json.loads(data)
+try:
+    parsed_data = json.loads(data)
+except ValueError:
+    exit(1)
 
 def prep_arg(arg):
     # Hack to work with both 2.X and 3.X
