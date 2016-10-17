@@ -72,6 +72,9 @@ if has_file:
 else:
     data = sys.stdin.read()
 
+if not data.strip():
+    exit()
+
 try:
     parsed_data = json.loads(data)
 except ValueError:
