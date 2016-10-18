@@ -87,6 +87,8 @@ def prep_arg(arg):
         return "\"%s\"" % arg
     elif type(arg) is bool:
         return "true" if arg else "false"
+    elif arg is None:
+        return "null"
 
     return str(arg)
 
@@ -101,6 +103,8 @@ def color_key(arg):
 def color_value(arg):
     if arg == "true" or arg == "false":
         return "\033[1;32m%s\033[0m" % arg
+    elif arg == "null":
+        return "\033[1;36m%s\033[0m" % arg
     else:
         try:
             float(arg)
