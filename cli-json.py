@@ -17,7 +17,7 @@ import sys
 import json
 import getopt
 
-VERSION = "v0.1.0"
+VERSION = "v0.1.1"
 
 def die(msg):
     sys.stderr.write(msg + "\n")
