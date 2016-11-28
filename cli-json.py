@@ -20,10 +20,18 @@ import getopt
 VERSION = "v0.1.1"
 
 def die(msg):
+    """ Print a message to STDERR then exit
+
+    Args:
+        msg: Error message to print.
+    """
+
     sys.stderr.write(msg + "\n")
     exit(1)
 
 def usage():
+    """ Print a usage message """
+
     usage = """Usage:
     If -f is not specified cli-json.py will read from STDIN
 
@@ -34,53 +42,13 @@ def usage():
     -v, --version   Print version information"""
     print(usage)
 
-opts, args = getopt.getopt(sys.argv[1:], "hci:f:v", ["help", "version"])
-
-has_file = False
-indent_size = 4
-color_output = False
-
-for o, a in opts:
-    if o == "-c":
-        color_output = True
-    elif o == "-f":
-        file_arg = a
-        has_file = True
-    elif o == "-i":
-        try:
-            indent_size = int(a)
-        except ValueError:
-            die("Invalid argument for -i!")
-
-        if indent_size < 0:
-            die("Invalid argument for -i!")
-    elif o in ("-h", "--help"):
-        usage()
-        exit()
-    elif o in ("-v", "--version"):
-        print("cli-json.py version: " + VERSION)
-        print("Copyright (c) 2016 Robert Tate")
-        print("This software is available under the ISC license.")
-        exit()
-    else:
-        die("Unrecognized argument found!")
-
-# If no file is provided use STDIN for JSON source
-if has_file:
-    with open(file_arg, "r") as json_file:
-        data = json_file.read().replace("\n", "")
-else:
-    data = sys.stdin.read()
-
-if not data.strip():
-    exit()
-
-try:
-    parsed_data = json.loads(data)
-except ValueError:
-    exit(1)
-
 def prep_arg(arg):
+    """ Convert the value to a string that represents a valid JSON type
+
+    Args:
+        arg: The value recieved from parsing the JSON
+    """
+
     # Hack to work with both 2.X and 3.X
     if isinstance(arg, basestring) if sys.version_info < (3, 0) else isinstance(arg, str):
         arg = arg.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
@@ -93,14 +61,39 @@ def prep_arg(arg):
     return str(arg)
 
 def print_indent(indent_level):
+    """ Prints the appropriate indent
+
+    Args:
+        indent_level: The number of indent layers.
+    """
+
     for i in range(indent_level):
         for j in range(indent_size):
             sys.stdout.write(" ")
 
 def color_key(arg):
+    """ Add colour to a JSON key
+
+    Args:
+        arg: The key to colour.
+
+    Return:
+        The key wrapped in ANSI colour escapes.
+    """
+
     return "\033[1;31m%s\033[0m" % arg
 
 def color_value(arg):
+    """ Add colour to a JSON value
+
+    Args:
+        arg: The value to colour.
+
+    Return:
+        The value wrapped in ANSI colour escapes corresponding to
+        the type of value.
+    """
+
     if arg == "true" or arg == "false":
         return "\033[1;32m%s\033[0m" % arg
     elif arg == "null":
@@ -112,8 +105,15 @@ def color_value(arg):
         except ValueError:
             return "\033[1;34m%s\033[0m" % arg
 
-# Recursively parse and print a formatted version of the JSON
 def node_iterate(arg, start_indented, indent_level):
+    """ Recursively parse and print a formatted version of the JSON
+
+    Args:
+        arg:            The node to process.
+        start_indented: A boolean representing if an indent is required before the object.
+        indent_level:   The indent level for the node.
+    """
+
     if type(arg) is list:
         if start_indented:
             print_indent(indent_level - 1)
@@ -157,6 +157,54 @@ def node_iterate(arg, start_indented, indent_level):
         print_indent(indent_level - 1)
         sys.stdout.write("}")
 
-node_iterate(parsed_data, False, 1)
+if __name__ == "__main__":
+    opts, args = getopt.getopt(sys.argv[1:], "hci:f:v", ["help", "version"])
 
-sys.stdout.write("\n")
+    has_file = False
+    indent_size = 4
+    color_output = False
+
+    for o, a in opts:
+        if o == "-c":
+            color_output = True
+        elif o == "-f":
+            file_arg = a
+            has_file = True
+        elif o == "-i":
+            try:
+                indent_size = int(a)
+            except ValueError:
+                die("Invalid argument for -i!")
+
+                if indent_size < 0:
+                    die("Invalid argument for -i!")
+
+        elif o in ("-h", "--help"):
+            usage()
+            exit()
+        elif o in ("-v", "--version"):
+            print("cli-json.py version: " + VERSION)
+            print("Copyright (c) 2016 Robert Tate")
+            print("This software is available under the ISC license.")
+            exit()
+        else:
+            die("Unrecognized argument found!")
+
+        # If no file is provided use STDIN for JSON source
+        if has_file:
+            with open(file_arg, "r") as json_file:
+                data = json_file.read().replace("\n", "")
+        else:
+            data = sys.stdin.read()
+
+        if not data.strip():
+            exit()
+
+        try:
+            parsed_data = json.loads(data)
+        except ValueError:
+            exit(1)
+
+        node_iterate(parsed_data, False, 1)
+
+        sys.stdout.write("\n")
