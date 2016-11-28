@@ -190,21 +190,21 @@ if __name__ == "__main__":
         else:
             die("Unrecognized argument found!")
 
-        # If no file is provided use STDIN for JSON source
-        if has_file:
-            with open(file_arg, "r") as json_file:
-                data = json_file.read().replace("\n", "")
-        else:
-            data = sys.stdin.read()
+    # If no file is provided use STDIN for JSON source
+    if has_file:
+        with open(file_arg, "r") as json_file:
+            data = json_file.read().replace("\n", "")
+    else:
+        data = sys.stdin.read()
 
-        if not data.strip():
-            exit()
+    if not data.strip():
+        exit()
 
-        try:
-            parsed_data = json.loads(data)
-        except ValueError:
-            exit(1)
+    try:
+        parsed_data = json.loads(data)
+    except ValueError:
+        exit(1)
 
-        node_iterate(parsed_data, False, 1)
+    node_iterate(parsed_data, False, 1)
 
-        sys.stdout.write("\n")
+    sys.stdout.write("\n")
